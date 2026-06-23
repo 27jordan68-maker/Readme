@@ -1,0 +1,79 @@
+import java.util.*;
+
+public class SummaryTable {
+
+    static class YearData {
+        int year;
+        double steelPlan, steelFact;
+        double coalPlan, coalFact;
+
+        YearData(int year, double steelPlan, double steelFact, double coalPlan, double coalFact) {
+            this.year = year;
+            this.steelPlan = steelPlan;
+            this.steelFact = steelFact;
+            this.coalPlan = coalPlan;
+            this.coalFact = coalFact;
+        }
+    }
+
+    public static void main(String[] args) {
+        // Пример данных (можно заменить своими)
+        List<YearData> data = Arrays.asList(
+            new YearData(2020, 120.5, 118.2, 85.0, 87.3),
+            new YearData(2021, 125.0, 126.8, 90.5, 89.1),
+            new YearData(2022, 130.2, 128.5, 95.0, 96.4),
+            new YearData(2023, 135.0, 137.1, 100.0, 98.7)
+        );
+
+        printConsoleTable(data);
+        // generateHtmlTable(data); // раскомментировать для HTML
+    }
+
+    // ---------- Консольный вывод ----------
+    static void printConsoleTable(List<YearData> data) {
+        // Заголовки
+        String format = "| %-4s | %8s | %8s | %8s | %8s | %8s |%n";
+        System.out.format("+------+----------+----------+----------+----------+----------+%n");
+        System.out.format("| Год  | Сталь пл | Сталь фт | Уголь пл | Уголь фт | Откл ст  |%n");
+        System.out.format("+------+----------+----------+----------+----------+----------+%n");
+
+        for (YearData d : data) {
+            double diffSteel = d.steelFact - d.steelPlan;
+            System.out.format(format,
+                d.year,
+                round(d.steelPlan),
+                round(d.steelFact),
+                round(d.coalPlan),
+                round(d.coalFact),
+                round(diffSteel)
+            );
+        }
+        System.out.format("+------+----------+----------+----------+----------+----------+%n");
+    }
+
+    static String round(double val) {
+        return String.format(Locale.US, "%.1f", val);
+    }
+
+    // ---------- Генерация HTML (доп. опция) ----------
+    static void generateHtmlTable(List<YearData> data) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html><html><head><style>");
+        html.append("table { border-collapse: collapse; font-family: Arial; }");
+        html.append("td, th { border: 1px solid #666; padding: 6px 12px; text-align: center; }");
+        html.append("th { background: #ddd; }");
+        html.append("</style></head><body>");
+        html.append("<table>");
+        html.append("<tr><th>Год</th><th>Сталь (план)</th><th>Сталь (факт)</th>");
+        html.append("<th>Уголь (план)</th><th>Уголь (факт)</th><th>Отклонение (сталь)</th></tr>");
+
+        for (YearData d : data) {
+            double diff = d.steelFact - d.steelPlan;
+            html.append(String.format(Locale.US,
+                "<tr><td>%d</td><td>%.1f</td><td>%.1f</td><td>%.1f</td><td>%.1f</td><td>%+.1f</td></tr>",
+                d.year, d.steelPlan, d.steelFact, d.coalPlan, d.coalFact, diff));
+        }
+        html.append("</table></body></html>");
+        System.out.println("\n--- HTML-код таблицы ---\n" + html);
+    }
+}
