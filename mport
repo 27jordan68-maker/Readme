@@ -1,0 +1,100 @@
+mport javax.swing.*;
+import javax.swing.table.*;
+import java.awt.*;
+
+public class SteelCoalTable extends JFrame {
+
+    public SteelCoalTable() {
+        setTitle("Сравнение плановых и фактических показателей");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(800, 400);
+        setLocationRelativeTo(null);
+
+        // Данные: строки = показатели, столбцы = годы
+        String[] columns = {"Показатель", "2022 (план)", "2022 (факт)", "2023 (план)", "2023 (факт)", 
+                            "2024 (план)", "2024 (факт)", "2025 (план)", "2025 (факт)"};
+
+        Object[][] data = {
+            {"Выплавка стали (млн т)", 72.5, 71.8, 74.0, 73.2, 75.5, 76.1, 78.0, 79.3},
+            {"Добыча угля (млн т)", 85.0, 84.2, 87.5, 86.9, 90.0, 91.4, 93.0, 94.7}
+        };
+
+        JTable table = new JTable(data, columns);
+        table.setRowHeight(30);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(230, 240, 255));
+        table.setGridColor(Color.LIGHT_GRAY);
+
+        // Выделение отклонений (факт vs план)
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int col) {
+                Component c = super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col);
+                if (col >= 1 && value instanceof Number) {
+                    int planCol = (col % 2 == 1) ? col : col - 1; // столбец плана для этой пары
+                    if (planCol >= 0) {
+                        Object planObj = t.getValueAt(row, planCol);
+                        if (planObj instanceof Number) {
+                            double plan = ((Number) planObj).doubleValue();
+                            double fact = ((Number) value).doubleValue();
+                            if (col % 2 == 0) { // фактические столбцы
+                                double diff = fact - plan;
+                                if (diff > 0) c.setBackground(new Color(200, 255, 200)); // зеленый
+                                else if (diff < 0) c.setBackground(new Color(255, 200, 200)); // красный
+                                else c.setBackground(Color.WHITE);
+                            } else {
+                                c.setBackground(new Color(240, 248, 255)); // план - голубоватый
+                            }
+                        }
+                    }
+                } else {
+                    c.setBackground(Color.WHITE);
+                }
+                return c;
+            }
+        });
+
+        // Автоширина столбцов
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            TableColumn col = table.getColumnModel().getColumn(i);
+            if (i == 0) col.setPreferredWidth(180);
+            else col.setPreferredWidth(90);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Нижняя панель с легендой
+        JPanel legendPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        legendPanel.add(createLegend("План", new Color(240, 248, 255)));
+        legendPanel.add(createLegend("Факт > план", new Color(200, 255, 200)));
+        legendPanel.add(createLegend("Факт < план", new Color(255, 200, 200)));
+        add(legendPanel, BorderLayout.SOUTH);
+    }
+
+    private JPanel createLegend(String text, Color color) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JLabel colorLabel = new JLabel("   ");
+        colorLabel.setOpaque(true);
+        colorLabel.setBackground(color);
+        colorLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+03:02 PM
+colorLabel.setPreferredSize(new Dimension(20, 20));
+        panel.add(colorLabel);
+        panel.add(new JLabel(text));
+        return panel;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new SteelCoalTable().setVisible(true);
+        });
+    }
